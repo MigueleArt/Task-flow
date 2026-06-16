@@ -1,0 +1,6 @@
+{
+  "name": "Gestión de Incidencias",
+  "description": "Sistema full-stack para la gestión de incidencias, tickets y tareas con roles de administrador y miembro.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

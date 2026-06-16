@@ -1,0 +1,75 @@
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Rol {
+  id       Int       @id @default(autoincrement())
+  nombre   String    @unique // "administrador" | "miembro"
+  usuarios Usuario[]
+
+  @@map("roles")
+}
+
+model Usuario {
+  id                Int               @id @default(autoincrement())
+  nombre            String
+  email             String            @unique
+  password          String
+  activo            Boolean           @default(true)
+  creadoEn          DateTime          @default(now()) @map("creado_en")
+  rol               Rol               @relation(fields: [rolId], references: [id])
+  rolId             Int               @map("rol_id")
+  ticketsCreados    Ticket[]          @relation("Creador")
+  ticketsAsignados  Ticket[]          @relation("Asignado")
+  comentarios       Comentario[]
+  historialesTicket HistorialTicket[]
+
+  @@map("usuarios")
+}
+
+model Ticket {
+  id          Int               @id @default(autoincrement())
+  titulo      String
+  descripcion String
+  prioridad   String            // "BAJA", "MEDIA", "ALTA", "URGENTE"
+  estado      String            // "ABIERTO", "EN_PROCESO", "EN_REVISION", "RESUELTO"
+  creadoEn    DateTime          @default(now()) @map("creado_en")
+  creadoPor   Usuario           @relation("Creador", fields: [creadoPorId], references: [id])
+  creadoPorId Int               @map("creado_por_id")
+  asignadoA   Usuario?          @relation("Asignado", fields: [asignadoAId], references: [id])
+  asignadoAId Int?              @map("asignado_a_id")
+  comentarios Comentario[]
+  historiales HistorialTicket[]
+
+  @@map("tickets")
+}
+
+model Comentario {
+  id        Int      @id @default(autoincrement())
+  contenido String
+  creadoEn  DateTime @default(now()) @map("creado_en")
+  autor     Usuario  @relation(fields: [autorId], references: [id])
+  autorId   Int      @map("autor_id")
+  ticket    Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  ticketId  Int      @map("ticket_id")
+
+  @@map("comentarios")
+}
+
+model HistorialTicket {
+  id             Int      @id @default(autoincrement())
+  ticket         Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  ticketId       Int      @map("ticket_id")
+  usuario        Usuario  @relation(fields: [usuarioId], references: [id])
+  usuarioId      Int      @map("usuario_id")
+  estadoAnterior String   @map("estado_anterior")
+  estadoNuevo    String   @map("estado_nuevo")
+  cambiadoEn     DateTime @default(now()) @map("cambiado_en")
+
+  @@map("historial_tickets")
+}
