@@ -30,6 +30,29 @@ async function main() {
   await prisma.usuario.deleteMany();
 
   // Users
+  const adminUsuario = await prisma.usuario.upsert({
+    where: { email: 'admin@sistema.com' },
+    update: {},
+    create: {
+      nombre: 'Administrador',
+      email: 'admin@sistema.com',
+      password: adminPassword,
+      rolId: adminRol.id,
+      activo: true,
+    },
+  });
+
+  const miembroUsuario = await prisma.usuario.upsert({
+    where: { email: 'miembro@sistema.com' },
+    update: {},
+    create: {
+      nombre: 'Miembro de Soporte',
+      email: 'miembro@sistema.com',
+      password: miembroPassword,
+      rolId: miembroRol.id,
+      activo: true,
+    },
+  });
   const joseMiguel = await prisma.usuario.upsert({
     where: { email: 'josemiguel@sistema.com' },
     update: {},
