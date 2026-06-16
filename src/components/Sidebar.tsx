@@ -15,7 +15,6 @@ import {
 export default function Sidebar() {
   const { user, logout, isAdmin } = useAuth();
   const [expanded, setExpanded] = useState(true);
-  const [showSubMenu, setShowSubMenu] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -28,11 +27,7 @@ export default function Sidebar() {
       id: 'tickets',
       label: 'Tickets',
       icon: TicketIcon,
-      path: '/',
-      hasSub: true,
-      subItems: [
-        { id: 'sub-usuarios', label: 'Usuarios', path: '/usuarios', adminOnly: true }
-      ]
+      path: '/'
     },
     {
       id: 'usuarios',
@@ -86,65 +81,17 @@ export default function Sidebar() {
 
             return (
               <div key={item.id} className="space-y-1">
-                {item.hasSub ? (
-                  <div>
-                    <button
-                      onClick={() => {
-                        if (expanded) {
-                          setShowSubMenu(!showSubMenu);
-                        } else {
-                          setExpanded(true);
-                          setShowSubMenu(true);
-                        }
-                      }}
-                      className={`w-full flex items-center justify-between py-2.5 px-3 rounded-lg text-sm transition-all font-medium ${
-                        isActive
-                          ? 'bg-[#F5F3FF] text-[#5B21B6] border-l-4 border-[#5B21B6]'
-                          : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
-                      }`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <item.icon size={18} className={isActive ? 'text-[#5B21B6]' : 'text-gray-400'} />
-                        {expanded && <span>{item.label}</span>}
-                      </div>
-                      {expanded && <ChevronDown size={14} className={`transition-transform duration-200 ${showSubMenu ? 'rotate-180' : ''}`} />}
-                    </button>
-
-                    {expanded && showSubMenu && (
-                      <div className="pl-9 pr-2 py-1 space-y-1">
-                        {item.subItems.map(sub => {
-                          if (sub.adminOnly && !isAdmin) return null;
-                          const isSubActive = location.pathname === sub.path;
-                          return (
-                            <button
-                              key={sub.id}
-                              onClick={() => handleNav(sub.path)}
-                              className={`w-full text-left py-1.5 px-3 rounded-md text-xs font-medium transition-all ${
-                                isSubActive
-                                  ? 'bg-[#F5F3FF] text-[#5B21B6] font-semibold'
-                                  : 'text-gray-400 hover:bg-gray-50 hover:text-gray-700'
-                              }`}
-                            >
-                              {sub.label}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <button
-                    onClick={() => handleNav(item.path)}
-                    className={`w-full flex items-center gap-3 py-2.5 px-3 rounded-lg text-sm transition-all font-medium ${
-                      isActive
-                        ? 'bg-[#F5F3FF] text-[#5B21B6] border-l-4 border-[#5B21B6]'
-                        : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
-                    }`}
-                  >
-                    <item.icon size={18} className={isActive ? 'text-[#5B21B6]' : 'text-gray-400'} />
-                    {expanded && <span>{item.label}</span>}
-                  </button>
-                )}
+                <button
+                  onClick={() => handleNav(item.path)}
+                  className={`w-full flex items-center gap-3 py-2.5 px-3 rounded-lg text-sm transition-all font-medium ${
+                    isActive
+                      ? 'bg-[#F5F3FF] text-[#5B21B6] border-l-4 border-[#5B21B6]'
+                      : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
+                  }`}
+                >
+                  <item.icon size={18} className={isActive ? 'text-[#5B21B6]' : 'text-gray-400'} />
+                  {expanded && <span>{item.label}</span>}
+                </button>
               </div>
             );
           })}
