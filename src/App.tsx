@@ -6,6 +6,7 @@ import LoginPage from './pages/LoginPage.tsx';
 import DashboardPage from './pages/DashboardPage.tsx';
 import NewTicketPage from './pages/NewTicketPage.tsx';
 import UsersPage from './pages/UsersPage.tsx';
+import SettingsPage from './pages/SettingsPage.tsx';
 
 export default function App() {
   return (
@@ -41,6 +42,17 @@ export default function App() {
             element={
               <ProtectedRoute adminOnly>
                 <UsersPage />
+              </ProtectedRoute>
+            }
+          />
+
+
+          {/* SECURE SETTINGS ROUTE */}
+          <Route
+            path="/configuracion"
+            element={
+              <ProtectedRoute>
+                <SettingsPage />
               </ProtectedRoute>
             }
           />

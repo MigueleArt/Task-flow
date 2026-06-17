@@ -101,10 +101,14 @@ export default function Sidebar() {
       {/* FOOTER SECTION (Avatar & settings) */}
       <div className="border-t border-gray-50 p-2 space-y-1">
         <button
-          onClick={() => alert('Configuración general (Solo vista)')}
-          className="flex items-center gap-3 w-full py-2 px-3 text-sm text-gray-500 hover:bg-gray-50 hover:text-gray-900 rounded-lg transition-colors font-medium"
+          onClick={() => handleNav('/configuracion')}
+          className={`flex items-center gap-3 w-full py-2 px-3 text-sm hover:bg-gray-50 rounded-lg transition-colors font-medium ${
+            location.pathname === '/configuracion'
+              ? 'bg-[#F5F3FF] text-[#5B21B6]'
+              : 'text-gray-500 hover:text-gray-900'
+          }`}
         >
-          <SettingsIcon size={18} className="text-gray-400" />
+          <SettingsIcon size={18} className={location.pathname === '/configuracion' ? 'text-[#5B21B6]' : 'text-gray-400'} />
           {expanded && <span>Configuración</span>}
         </button>
 

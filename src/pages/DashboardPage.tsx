@@ -195,6 +195,28 @@ export default function DashboardPage() {
     }
   };
 
+  // Delete ticket handler (Admin only)
+  const handleDeleteTicket = async (ticketId: number) => {
+    if (!token || !isAdmin) return;
+    if (!window.confirm('¿Estás seguro de que deseas eliminar este ticket permanentemente?')) return;
+
+    try {
+      const res = await fetch(`/api/tickets/${ticketId}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setSelectedTicket(null);
+        fetchData();
+      } else {
+        alert(data.error || 'No se pudo eliminar la incidencia');
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   // Get active priority colors
   const getPriorityStyle = (priority: string) => {
     switch (priority) {
@@ -514,7 +536,16 @@ export default function DashboardPage() {
                 </h4>
               </div>
               
-              <div>
+              <div className="flex items-center gap-3">
+                {isAdmin && (
+                  <button
+                    onClick={() => handleDeleteTicket(selectedTicket.id)}
+                    className="py-1 px-2.5 bg-red-50 hover:bg-red-100/80 active:scale-95 text-[10px] text-red-600 rounded-full outline-none cursor-pointer border border-red-100 flex items-center font-bold uppercase tracking-wider transition-all"
+                    title="Eliminar permanentemente"
+                  >
+                    Eliminar
+                  </button>
+                )}
                 <span className={getStatusBadge(selectedTicket.estado)}>
                   {selectedTicket.estado === 'ABIERTO' ? 'Abierto' : selectedTicket.estado === 'CERRADO' ? 'Cerrado' : selectedTicket.estado.replace('_', ' ')}
                 </span>

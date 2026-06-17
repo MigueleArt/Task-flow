@@ -253,6 +253,71 @@ app.get('/api/roles', authenticateToken, authorizeRole('administrador'), async (
 });
 
 // ============================
+// PERFIL PROPIO (Cualquier usuario autenticado)
+// ============================
+
+// GET /api/me - Obtener perfil del usuario autenticado
+app.get('/api/me', authenticateToken, async (req: any, res: express.Response) => {
+  try {
+    const user = await prisma.usuario.findUnique({
+      where: { id: req.user.id },
+      select: { id: true, nombre: true, email: true, activo: true, creadoEn: true, rol: true }
+    });
+    if (!user) return res.status(404).json({ error: 'Usuario no encontrado' });
+    res.json(user);
+  } catch (error) {
+    console.error('Error al obtener perfil:', error);
+    res.status(500).json({ error: 'Error al cargar el perfil' });
+  }
+});
+
+// PATCH /api/me - Actualizar nombre o contraseña del usuario autenticado
+app.patch('/api/me', authenticateToken, async (req: any, res: express.Response) => {
+  const { nombre, passwordActual, passwordNuevo } = req.body;
+
+  try {
+    const user = await prisma.usuario.findUnique({ where: { id: req.user.id } });
+    if (!user) return res.status(404).json({ error: 'Usuario no encontrado' });
+
+    const dataToUpdate: any = {};
+
+    if (nombre && nombre.trim()) {
+      dataToUpdate.nombre = nombre.trim();
+    }
+
+    if (passwordNuevo) {
+      if (!passwordActual) {
+        return res.status(400).json({ error: 'Debes ingresar tu contraseña actual para cambiarla' });
+      }
+      const match = await bcrypt.compare(passwordActual, user.password);
+      if (!match) {
+        return res.status(400).json({ error: 'La contraseña actual es incorrecta' });
+      }
+      if (passwordNuevo.length < 6) {
+        return res.status(400).json({ error: 'La nueva contraseña debe tener al menos 6 caracteres' });
+      }
+      const salt = await bcrypt.genSalt(10);
+      dataToUpdate.password = await bcrypt.hash(passwordNuevo, salt);
+    }
+
+    if (Object.keys(dataToUpdate).length === 0) {
+      return res.status(400).json({ error: 'No hay cambios para guardar' });
+    }
+
+    const updated = await prisma.usuario.update({
+      where: { id: req.user.id },
+      data: dataToUpdate,
+      select: { id: true, nombre: true, email: true, activo: true, creadoEn: true, rol: true }
+    });
+
+    res.json(updated);
+  } catch (error) {
+    console.error('Error al actualizar perfil:', error);
+    res.status(500).json({ error: 'Error al guardar los cambios del perfil' });
+  }
+});
+
+// ============================
 // TICKETS ENDPOINTS (Cualquier usuario)
 // ============================
 
@@ -473,6 +538,27 @@ app.patch('/api/tickets/:id/estado', authenticateToken, async (req: any, res: ex
   } catch (error) {
     console.error('Error al cambiar de estado:', error);
     res.status(500).json({ error: 'Error al actualizar el estado de la incidencia' });
+  }
+});
+
+// DELETE /api/tickets/:id (solo admin)
+app.delete('/api/tickets/:id', authenticateToken, authorizeRole('administrador'), async (req: express.Request, res: express.Response) => {
+  const ticketId = parseInt(req.params.id, 10);
+
+  try {
+    const ticketObj = await prisma.ticket.findUnique({ where: { id: ticketId } });
+    if (!ticketObj) {
+      return res.status(404).json({ error: 'Ticket no encontrado' });
+    }
+
+    await prisma.ticket.delete({
+      where: { id: ticketId }
+    });
+
+    res.json({ success: true, message: 'Incidencia eliminada correctamente' });
+  } catch (error) {
+    console.error('Error al eliminar ticket:', error);
+    res.status(500).json({ error: 'Error al eliminar la incidencia del sistema' });
   }
 });
 
