@@ -1,6 +1,5 @@
 import express from 'express';
 import path from 'path';
-import { fileURLToPath } from 'url';
 import { createServer as createViteServer } from 'vite';
 import { PrismaClient } from '@prisma/client';
 import jwt from 'jsonwebtoken';
@@ -12,10 +11,6 @@ const PORT = 3000;
 const JWT_SECRET = process.env.JWT_SECRET || 'incidencias-y-tareas-super-secret-key-987!';
 
 app.use(express.json());
-
-// Helper for ES Modules paths
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 // Middleware: Authenticate Token
 const authenticateToken = async (req: any, res: express.Response, next: express.NextFunction) => {
