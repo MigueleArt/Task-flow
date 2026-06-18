@@ -113,6 +113,50 @@ app.post('/api/auth/login', async (req: express.Request, res: express.Response) 
   }
 });
 
+// POST /api/auth/register — Registro público (siempre como miembro)
+app.post('/api/auth/register', async (req: express.Request, res: express.Response) => {
+  const { nombre, email, password } = req.body;
+
+  if (!nombre || !email || !password) {
+    return res.status(400).json({ error: 'Nombre, correo y contraseña son obligatorios' });
+  }
+  if (password.length < 6) {
+    return res.status(400).json({ error: 'La contraseña debe tener al menos 6 caracteres' });
+  }
+
+  try {
+    const existing = await prisma.usuario.findUnique({ where: { email } });
+    if (existing) {
+      return res.status(400).json({ error: 'Ya existe una cuenta registrada con ese correo' });
+    }
+
+    // Siempre asignar rol de miembro en auto-registro
+    const miembroRol = await prisma.rol.findFirst({ where: { nombre: 'miembro' } });
+    if (!miembroRol) {
+      return res.status(500).json({ error: 'Error de configuración del sistema (rol no encontrado)' });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    const newUser = await prisma.usuario.create({
+      data: {
+        nombre: nombre.trim(),
+        email,
+        password: hashedPassword,
+        rolId: miembroRol.id,
+        activo: true,
+      },
+      select: { id: true, nombre: true, email: true, rol: true }
+    });
+
+    res.status(201).json({ message: 'Cuenta creada correctamente', usuario: newUser });
+  } catch (error) {
+    console.error('Error en registro:', error);
+    res.status(500).json({ error: 'Error al crear la cuenta' });
+  }
+});
+
 // ============================
 // USUARIOS ENDPOINTS (Solo Administrador)
 // ============================
